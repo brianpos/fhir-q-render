@@ -198,7 +198,7 @@ function getExtensionsByUrl(extendable, url) {
     return result;
 }
 
-function gerenateModelItems(item_model, qis, qris){
+function generateModelItems(item_model, qis, qris){
     if (qis.length > 0){
         for (var n=0; n < qis.length; n++){
             var itemQ = qis[n];
@@ -219,7 +219,7 @@ function gerenateModelItems(item_model, qis, qris){
                         {
                             if (!itemQR.item)
                                 itemQR.item = [];
-                            gerenateModelItems(t.item_model, itemQ.item, itemQR.item);
+                            generateModelItems(t.item_model, itemQ.item, itemQR.item);
                         }
                     }
                 }
@@ -239,7 +239,7 @@ function gerenateModelItems(item_model, qis, qris){
                 {
                     if (!itemQR.item)
                         itemQR.item = [];
-                    gerenateModelItems(t.item_model, itemQ.item, itemQR.item);
+                    generateModelItems(t.item_model, itemQ.item, itemQR.item);
                 }
             }
         }
@@ -256,6 +256,6 @@ function generateModel(q, qr){
         q.item = [];
     if (!qr.item)
         qr.item = [];
-    gerenateModelItems(result.item_model, q.item, qr.item);
+    generateModelItems(result.item_model, q.item, qr.item);
     return result;
 }
