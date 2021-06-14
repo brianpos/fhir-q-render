@@ -42,7 +42,7 @@
 <body>
     <div class="input-group input-group-s">
         <span class="input-group-text" id="inputGroup-sizing-sm">URL:</span>
-        <input id="url" class="form-control" value="https://sqlonfhir-r4.azurewebsites.net/fhir/Questionnaire/enable-when-tests"/>
+        <input id="url" class="form-control" value="https://sqlonfhir-r4.azurewebsites.net/fhir/Questionnaire/bit-of-everything"/>
         <button clas="btn btn-outline-secondary" type="button" onclick="RenderQuestionnaire();">Render</button>
     </div>
     <div id="app">
@@ -154,7 +154,6 @@
             // If there is a URL on the parameters, grab that and replace the control
             // https://www.w3docs.com/snippets/javascript/how-to-get-url-parameters.html
             const queryString = window.location.search;
-            console.log(queryString);
             const urlParams = new URLSearchParams(queryString);
             const url = urlParams.get("url");
             if (url){
