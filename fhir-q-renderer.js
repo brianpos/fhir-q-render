@@ -83,11 +83,11 @@ Vue.component('fhirq-item', {
                     </label>
                     <select v-if="!item_defn.repeats" class="form-select col-sm-8" v-model.sync="value" aria-label="Default select example" v-bind:id="item_defn.linkId">
                         <option ></option>
-                        <option v-for="option in answerOptions" v-bind:value="option.code">{{ option.display }}</option>
+                        <option v-for="option in answerOptions" v-bind:value="option.system + '#' + option.code">{{ option.display }}</option>
                     </select>
                     <div v-else class="col-sm-8">
                         <div v-for="(option,index) in answerOptions">
-                            <input class="form-check-input" type="checkbox" v-bind:value="option.code" v-model.sync="value" v-bind:id="item_defn.linkId+'_'+index">
+                            <input class="form-check-input" type="checkbox" v-bind:value="option.system + '#' + option.code" v-model.sync="value" v-bind:id="item_defn.linkId+'_'+index">
                             <label class="form-check-label" v-bind:for="item_defn.linkId+'_'+index">
                             {{ option.display }}{{ option.valueString }}
                             </label>
@@ -104,7 +104,7 @@ Vue.component('fhirq-item', {
                     <label v-bind:for="item_defn.linkId" class="col-sm-4 col-form-label">{{ item_defn.text }}</label>
                     <div class=" col-sm-8">
                     <div class="form-check" v-for="(option, index) in answerOptions">
-                        <input class="form-check-input" type="radio" v-bind:name="item_defn.linkId" value="" v-bind:id="item_defn.linkId+'_'+index">
+                        <input class="form-check-input" type="radio" v-bind:name="item_defn.linkId" v-model.sync="value" v-bind:value="option.system + '#' + option.code" v-bind:id="item_defn.linkId+'_'+index">
                         <label class="form-check-label" v-bind:for="item_defn.linkId+'_'+index">
                         {{option.display}}
                         </label>
@@ -122,7 +122,7 @@ Vue.component('fhirq-item', {
             </div>
             <div v-else-if="item_defn.type === 'reference'" >
                 <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
-                <input class="form-control" type="url" style="width:150px;" v-model="value" v-bind:id="item_defn.linkId">
+                <input class="form-control" type="url" v-model="value" v-bind:id="item_defn.linkId">
             </div>
             <div v-else-if="item_defn.type === 'quantity'" >
                 <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
@@ -172,32 +172,38 @@ Vue.component('fhirq-item', {
                 if (this.item_defn.type === "decimal") {
                     if (this.context.qr_item.answer[0].valueDecimal)
                         return this.context.qr_item.answer[0].valueDecimal;
-                    return false;
+                    return '';
                 }
                 if (this.item_defn.type === "integer") {
                     if (this.context.qr_item.answer[0].valueInteger)
                         return this.context.qr_item.answer[0].valueInteger;
-                    return false;
+                    return '';
                 }
                 if (this.item_defn.type === "date") {
                     // need to convert the date value here according to browser locale formatting
                     if (this.context.qr_item.answer[0].valueDate)
                         return this.context.qr_item.answer[0].valueDate;
-                    return false;
+                    return '';
                 }
                 if (this.item_defn.type === "dateTime") {
                     // need to convert the date value here according to browser locale formatting/timezone
                     if (this.context.qr_item.answer[0].valueDateTime)
                         return this.context.qr_item.answer[0].valueDateTime;
-                    return false;
+                    return '';
                 }
                 if (this.item_defn.type === "time") {
                     // need to convert the date value here according to browser locale formatting
                     if (this.context.qr_item.answer[0].valueTime)
                         return this.context.qr_item.answer[0].valueTime;
-                    return false;
+                    return '';
                 }
-                if (this.item_defn.type === "string" || this.item_defn.type === "text") {
+                if (this.item_defn.type === "string") {
+                    if (this.context.qr_item.answer[0].valueString)
+                        return this.context.qr_item.answer[0].valueString;
+                    return '';
+                }
+                if (this.item_defn.type === "text") {
+                    // replace the linefeed chars
                     if (this.context.qr_item.answer[0].valueString)
                         return this.context.qr_item.answer[0].valueString;
                     return '';
@@ -207,10 +213,17 @@ Vue.component('fhirq-item', {
                         return this.context.qr_item.answer[0].valueUri;
                     return '';
                 }
-                if (this.item_defn.type === "coding") {
+                if (this.item_defn.type === "choice") {
                     if (this.context.qr_item.answer[0].valueCoding)
-                        return this.context.qr_item.answer[0].valueCoding.code;
-                    return false;
+                        return this.context.qr_item.answer[0].valueCoding.system + '#' + this.context.qr_item.answer[0].valueCoding.code;
+                    return '';
+                }
+                if (this.item_defn.type === "open-choice") {
+                    if (this.context.qr_item.answer[0].valueCoding)
+                        return this.context.qr_item.answer[0].valueCoding.system + '#' + this.context.qr_item.answer[0].valueCoding.code;
+                    if (this.context.qr_item.answer[0].valueString)
+                        return this.context.qr_item.answer[0].valueString;
+                    return '';
                 }
                 if (this.item_defn.type === "attachment") {
                     if (this.context.qr_item.answer[0].valueAttachment)
@@ -225,7 +238,7 @@ Vue.component('fhirq-item', {
                 if (this.item_defn.type === "quantity") {
                     if (this.context.qr_item.answer[0].valueQuantity)
                         return this.context.qr_item.answer[0].valueQuantity.value;
-                    return false;
+                    return '';
                 }
                 return '';
             },
@@ -290,9 +303,20 @@ Vue.component('fhirq-item', {
                     if (val.length == 0)
                         delete this.context.qr_item.answer;
                 }
-                if (this.item_defn.type === "string" || this.item_defn.type === "text") {
+                if (this.item_defn.type === "string") {
                     if (!this.context.qr_item.answer)
                         this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({ "valueString": val })
+                    else
+                        this.context.qr_item.answer[0] = { "valueString": val };
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "text") {
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    // replace the linefeed chars
                     if (this.context.qr_item.answer.length < 1)
                         this.context.qr_item.answer.push({ "valueString": val })
                     else
@@ -310,7 +334,23 @@ Vue.component('fhirq-item', {
                     if (val.length == 0)
                         delete this.context.qr_item.answer;
                 }
-                if (this.item_defn.type === "coding") {
+                if (this.item_defn.type === "choice") {
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    var system = val;
+                    var code = val;
+                    if (val.indexOf("#") > -1){
+                        system = val.substring(0,val.indexOf("#"));
+                        code = val.substring(val.indexOf("#")+1);
+                    }
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({ "valueCoding": { "system": system, "code": code } })
+                    else
+                        this.context.qr_item.answer[0] = { "valueCoding": { "system": system, "code": code } };
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "open-choice") {
                     if (!this.context.qr_item.answer)
                         this.context.qr_item.answer = [];
                     if (this.context.qr_item.answer.length < 1)
