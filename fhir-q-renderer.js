@@ -313,3 +313,8 @@ function generateModel(q, qr){
     generateModelItems(result.item_model, q.item, qr.item);
     return result;
 }
+
+function displayErrorAndWarningMessages(model, outcome){
+    // drill through the model to find the instance, and attach the error message
+
+}

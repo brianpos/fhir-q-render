@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 
 <head>
@@ -46,14 +46,18 @@
     <div id="app">
         <table>
             <tr>
-                <td style="vertical-align: text-top; padding: 8px; width: 50%;">
+                <td style="vertical-align: text-top; padding: 8px; width: 33%;">
+                    <pre style="height: 100%; min-width: 10px;">{{ questionnaire }}</pre>
+                </td>
+                <td style="vertical-align: text-top; padding: 8px; width: 33%;">
                     <fhirq-item v-for="(item, index) in questionnaire.item" v-bind:item_defn="item"
                         v-bind:path="'questionnaire.item[' + index + ']'"
                         v-bind:context.sync="model.item_model[index]" v-bind:key="item.linkId">
                     </fhirq-item>
                 </td>
-                <td style="vertical-align: text-top; padding: 8px; width: 50%;">
+                <td style="vertical-align: text-top; padding: 8px; width: 33%;">
                     <button v-on:click="refreshQR">Refresh</button>
+                    <button v-on:click="validateQR">Validate</button>
                     <pre style="height: 100%; min-width: 10px;" id="test">{{ QuestionnaireResponse }}</pre>
                 </td>
             </tr>
@@ -75,7 +79,7 @@
                     InitializeQuestionnaireResponse: function () {
                         this.QuestionnaireResponse = {
                             "resourceType": "QuestionnaireResponse",
-                            "questionnaire": this.questionnaire.questionnaire,
+                            "questionnaire": "Questionnaire/" + this.questionnaire.id,
                             "status": "in-progress"
                         };
                         // Generate the model
@@ -98,6 +102,49 @@
                         var expression = "(%resource.item.item.where(linkId='Q10').answer.value & %resource.item.item.where(linkId='Q10b').answer.value) = 'chicken'";
                         var result = evalExpr(contextObject, expression, contextVariables);
                         // the result will have a boolean to show or not, or nothing
+                    },
+                    displayErrorAndWarningMessages: function(outcome) {
+                        displayErrorAndWarningMessages(this.model, outcome);
+                    },
+                    validateQR: function () {
+                        var json = this.model.questionnaireresponse;
+                        json.status = "completed";
+                        //Validate the questionnaireResponse
+                        var parameters = {
+                            "resourceType": "Parameters",
+                            "parameter": [{
+                                "name": "mode",
+                                "valueString": "create"
+                            },
+                            {
+                                "name": "resource",
+                                "resource": json
+                            }]
+                        };
+
+                        $.ajax({
+                            url: 'https://sqlonfhir-r4.azurewebsites.net/fhir/' + "QuestionnaireResponse/$validate",
+                            type: 'POST',
+                            contentType: "application/json+fhir",
+                            accepts: "application/json+fhir",
+                            data: JSON.stringify(parameters),
+                            success: function (operationOutcome) {
+                                if (!operationOutcome.issue || operationOutcome.issue.length == 0
+                                    || operationOutcome.issue.length == 1 && operationOutcome.issue[0].code === "informational") {
+                                    /* AT THIS POINT WE KNOW THAT THE FORM VALIDATES SUCCESSFULLY */
+                                }
+                                else
+                                    displayErrorAndWarningMessages(app.model, operationOutcome);
+                            },
+                            error: function (ex) {
+                                if (ex.responseJSON.issue) {
+                                    displayErrorAndWarningMessages(app.model, ex.responseJSON);
+                                }
+                                else {
+                                    alert(JSON.stringify(ex));
+                                }
+                            }
+                        });
                     }
                 }
             });
@@ -125,6 +172,10 @@
                 dataType: "json",  // jQuery will infer this, but you can set explicitly
                 success: function (data, textStatus, jqXHR) {
                     var resourceContent = data; // can be a global variable too...
+                    if (resourceContent.text){
+                        // remove the narrative text from the questionnaire
+                        delete resourceContent.text;
+                    }
                     // process the content...
                     app.message = "https://localhost/ncsr-ig/Questionnaire-bow-1000182-1.json";
                     app.questionnaire = resourceContent;
