@@ -4,6 +4,8 @@
 // http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl
 //    drop-down, check-box, autocomplete
 
+// Vue.component('p-calendar', calendar);
+
 Vue.component('fhirq-choice', {
     props: ['item_defn', 'path']
 });
@@ -22,6 +24,51 @@ Vue.component('fhirq-item', {
             <div v-else-if="item_defn.type === 'display'">
                 <template v-if="!hasMarkdown">{{item_defn.text}}</template>
                 <div v-if="hasMarkdown" v-html="textAsHtml"></div>
+            </div>
+            <div v-else-if="item_defn.type === 'boolean'">
+                <input class="form-check-input" type="checkbox" v-model="value" value="" v-bind:id="path">
+                <label class="form-check-label" v-bind:for="path">
+                {{ item_defn.text }}
+                </label>
+            </div>
+            <div v-else-if="item_defn.type === 'decimal'" >
+                <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
+                <input class="form-control" type="number" style="width:150px;" v-model="value" v-bind:id="item_defn.linkId">
+            </div>
+            <div v-else-if="item_defn.type === 'integer'" >
+                <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
+                <input class="form-control" type="number" style="width:150px;" v-model="value" v-bind:id="item_defn.linkId">
+            </div>
+            <template v-else-if="item_defn.type === 'date'" >
+                <label for="exampleFormControlInput1" class="col-sm-4 col-form-label">{{ item_defn.text }}</label>
+                <div class="col-sm-4 input-group" >
+                    <input class="form-control" type="date" style="max-width:170px;" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText">
+                </div>
+                <!-- <p-calendar style="max-width:180px;" v-bind:id2="item_defn.linkId" :utc="false" v-model="value" v-bind:placeholder="placeholderText"  dateFormat="dd/mm/yy" :showIcon="true"  :showButtonBar="true"></p-calendar> -->
+            </template>
+            <template v-else-if="item_defn.type === 'dateTime'" >
+                <label for="exampleFormControlInput1" class="col-sm-4 col-form-label">{{ item_defn.text }}</label>
+                <div class="col-sm-4 input-group" >
+                    <input class="form-control" type="datetime-local" style="max-width:200px;" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText">
+                </div>
+            </template>
+            <template v-else-if="item_defn.type === 'time'" >
+                <label for="exampleFormControlInput1" class="col-sm-4 col-form-label">{{ item_defn.text }}</label>
+                <div class="col-sm-4 input-group" >
+                    <input class="form-control" type="time" style="max-width:140px;" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText">
+                </div>
+            </template>
+            <div v-else-if="item_defn.type === 'string'" >
+                <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
+                <input class="form-control" v-bind:id="item_defn.linkId" v-model.sync="value" v-bind:placeholder="placeholderText">
+            </div>
+            <div v-else-if="item_defn.type === 'text'" >
+                <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
+                <textarea class="form-control" :autoResize="true" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText"></textarea>
+            </div>
+            <div v-else-if="item_defn.type === 'url'" >
+                <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
+                <input class="form-control" type="url" v-bind:id="item_defn.linkId" v-model.sync="value" v-bind:placeholder="placeholderText">
             </div>
             <template v-else-if="item_defn.type === 'choice'">
                 <template v-if="itemControl() === 'check-box'">
@@ -65,48 +112,26 @@ Vue.component('fhirq-item', {
                     </div>
                 </template>
             </template>
-            <template v-else-if="item_defn.type === 'date'" >
-                <label for="exampleFormControlInput1" class="col-sm-4 col-form-label">{{ item_defn.text }}</label>
-                <div class="col-sm-4 input-group" >
-                    <input class="form-control" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText">
-                </div>
-            </template>
-            <template v-else-if="item_defn.type === 'dateTime'" >
-                <label for="exampleFormControlInput1" class="col-sm-4 col-form-label">{{ item_defn.text }}</label>
-                <div class="col-sm-4 input-group" >
-                    <input class="form-control" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText">
-                </div>
-            </template>
-            <div v-else-if="item_defn.type === 'string'" >
+            <div v-else-if="item_defn.type === 'open-choice'" >
                 <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
                 <input class="form-control" v-bind:id="item_defn.linkId" v-model.sync="value" v-bind:placeholder="placeholderText">
             </div>
-            <div v-else-if="item_defn.type === 'text'" >
-                <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
-                <textarea class="form-control" :autoResize="true" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText"></textarea>
-            </div>
-            <div v-else-if="item_defn.type === 'decimal'" >
-                <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
-                <input class="form-control" style="width:150px; v-model="value" v-bind:id="item_defn.linkId">
-            </div>
-            <div v-else-if="item_defn.type === 'integer'" >
+            <div v-else-if="item_defn.type === 'attachment'" >
                 <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
                 <input class="form-control" style="width:150px;" v-model="value" v-bind:id="item_defn.linkId">
+            </div>
+            <div v-else-if="item_defn.type === 'reference'" >
+                <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
+                <input class="form-control" type="url" style="width:150px;" v-model="value" v-bind:id="item_defn.linkId">
             </div>
             <div v-else-if="item_defn.type === 'quantity'" >
                 <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
                 <input class="form-control" style="width:150px;" v-model="value" v-bind:id="item_defn.linkId">
             </div>
-            <div v-else-if="item_defn.type === 'boolean'">
-                <input class="form-check-input" type="checkbox" v-model="value" value="" v-bind:id="path">
-                <label class="form-check-label" v-bind:for="path">
-                {{ item_defn.text }}
-                </label>
-            </div>
             <template v-else>
                 <font color=red>UNKNOWN: {{ item_defn.type }}</font> {{ item_defn.text }}
             </template>
-            <ul v-if="item_defn.item && item_defn.item.length > 0">
+            <ul v-if="item_defn && item_defn.item && item_defn.item.length > 0">
                 <fhirq-item v-for="(child, index) in item_defn.item"    
                             v-bind:item_defn="child" 
                             v-bind:path="path + '.item[' + index + ']'" 
@@ -116,84 +141,212 @@ Vue.component('fhirq-item', {
         </div>
     `,
     computed: {
-        placeholderText: function(){
+        placeholderText: function () {
             var placeholderExtension = getFirstExtensionByUrl(this.item_defn, "http://hl7.org/fhir/StructureDefinition/entryFormat");
             if (placeholderExtension && placeholderExtension.valueString)
                 return placeholderExtension.valueString;
             return undefined;
         },
-        textAsHtml: function() {
+        textAsHtml: function () {
             return getMarkdownHtml(this.item_defn._text);
         },
-        answerOptions: function() {
+        answerOptions: function () {
             result = [];
             if (this.item_defn.answerOption && this.item_defn.answerOption.length > 0) {
-                this.item_defn.answerOption.forEach( element => {
+                this.item_defn.answerOption.forEach(element => {
                     if (element.valueCoding)
                         result.push(element.valueCoding);
                 });
             }
             return result;
         },
-        value:{
-            get: function(){
+        value: {
+            get: function () {
                 if (!this.context.qr_item.answer || this.context.qr_item.answer.length === 0)
                     return '';
-                if (this.item_defn.type === "string" || this.item_defn.type === "text"){
-                    if (this.context.qr_item.answer[0].valueString)
-                        return this.context.qr_item.answer[0].valueString;
-                    return '';
-                }
-                if (this.item_defn.type === "boolean"){
+                if (this.item_defn.type === "boolean") {
                     if (this.context.qr_item.answer[0].valueBoolean)
                         return this.context.qr_item.answer[0].valueBoolean;
                     return false;
                 }
-                if (this.item_defn.type === "coding"){
+                if (this.item_defn.type === "decimal") {
+                    if (this.context.qr_item.answer[0].valueDecimal)
+                        return this.context.qr_item.answer[0].valueDecimal;
+                    return false;
+                }
+                if (this.item_defn.type === "integer") {
+                    if (this.context.qr_item.answer[0].valueInteger)
+                        return this.context.qr_item.answer[0].valueInteger;
+                    return false;
+                }
+                if (this.item_defn.type === "date") {
+                    // need to convert the date value here according to browser locale formatting
+                    if (this.context.qr_item.answer[0].valueDate)
+                        return this.context.qr_item.answer[0].valueDate;
+                    return false;
+                }
+                if (this.item_defn.type === "dateTime") {
+                    // need to convert the date value here according to browser locale formatting/timezone
+                    if (this.context.qr_item.answer[0].valueDateTime)
+                        return this.context.qr_item.answer[0].valueDateTime;
+                    return false;
+                }
+                if (this.item_defn.type === "time") {
+                    // need to convert the date value here according to browser locale formatting
+                    if (this.context.qr_item.answer[0].valueTime)
+                        return this.context.qr_item.answer[0].valueTime;
+                    return false;
+                }
+                if (this.item_defn.type === "string" || this.item_defn.type === "text") {
+                    if (this.context.qr_item.answer[0].valueString)
+                        return this.context.qr_item.answer[0].valueString;
+                    return '';
+                }
+                if (this.item_defn.type === "url") {
+                    if (this.context.qr_item.answer[0].valueUri)
+                        return this.context.qr_item.answer[0].valueUri;
+                    return '';
+                }
+                if (this.item_defn.type === "coding") {
                     if (this.context.qr_item.answer[0].valueCoding)
                         return this.context.qr_item.answer[0].valueCoding.code;
                     return false;
                 }
+                if (this.item_defn.type === "attachment") {
+                    if (this.context.qr_item.answer[0].valueAttachment)
+                        return this.context.qr_item.answer[0].valueAttachment;
+                    return '';
+                }
+                if (this.item_defn.type === "reference") {
+                    if (this.context.qr_item.answer[0].valueReference)
+                        return this.context.qr_item.answer[0].valueReference;
+                    return '';
+                }
+                if (this.item_defn.type === "quantity") {
+                    if (this.context.qr_item.answer[0].valueQuantity)
+                        return this.context.qr_item.answer[0].valueQuantity.value;
+                    return false;
+                }
                 return '';
             },
-            set: function(val){
-                if (this.item_defn.type === "string" || this.item_defn.type === "text"){
+            set: function (val) {
+                if (this.item_defn.type === "boolean") {
                     if (!this.context.qr_item.answer)
                         this.context.qr_item.answer = [];
                     if (this.context.qr_item.answer.length < 1)
-                        this.context.qr_item.answer.push({"valueString":val})
+                        this.context.qr_item.answer.push({ "valueBoolean": val })
                     else
-                        this.context.qr_item.answer[0] = {"valueString":val};
+                        this.context.qr_item.answer[0] = { "valueBoolean": val };
                     if (val.length == 0)
                         delete this.context.qr_item.answer;
                 }
-                if (this.item_defn.type === "boolean"){
+                if (this.item_defn.type === "decimal") {
                     if (!this.context.qr_item.answer)
                         this.context.qr_item.answer = [];
                     if (this.context.qr_item.answer.length < 1)
-                        this.context.qr_item.answer.push({"valueBoolean":val})
+                        this.context.qr_item.answer.push({ "valueDecimal": val })
                     else
-                        this.context.qr_item.answer[0] = {"valueBoolean":val};
+                        this.context.qr_item.answer[0] = { "valueDecimal": val };
                     if (val.length == 0)
                         delete this.context.qr_item.answer;
                 }
-                if (this.item_defn.type === "date"){
+                if (this.item_defn.type === "integer") {
                     if (!this.context.qr_item.answer)
                         this.context.qr_item.answer = [];
                     if (this.context.qr_item.answer.length < 1)
-                        this.context.qr_item.answer.push({"valueDate":val})
+                        this.context.qr_item.answer.push({ "valueInteger": val })
                     else
-                        this.context.qr_item.answer[0] = {"valueDate":val};
+                        this.context.qr_item.answer[0] = { "valueInteger": val };
                     if (val.length == 0)
                         delete this.context.qr_item.answer;
                 }
-                if (this.item_defn.type === "coding"){
+                if (this.item_defn.type === "date") {
                     if (!this.context.qr_item.answer)
                         this.context.qr_item.answer = [];
                     if (this.context.qr_item.answer.length < 1)
-                        this.context.qr_item.answer.push({"valueCoding":{"code": val}})
+                        this.context.qr_item.answer.push({ "valueDate": val })
                     else
-                        this.context.qr_item.answer[0] = {"valueCoding":{"code": val}};
+                        this.context.qr_item.answer[0] = { "valueDate": val };
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "dateTime") {
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({ "valueDateTime": val })
+                    else
+                        this.context.qr_item.answer[0] = { "valueDateTime": val };
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "time") {
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({ "valueTime": val })
+                    else
+                        this.context.qr_item.answer[0] = { "valueTime": val };
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "string" || this.item_defn.type === "text") {
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({ "valueString": val })
+                    else
+                        this.context.qr_item.answer[0] = { "valueString": val };
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "url") {
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({ "valueUri": val })
+                    else
+                        this.context.qr_item.answer[0] = { "valueUri": val };
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "coding") {
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({ "valueCoding": { "code": val } })
+                    else
+                        this.context.qr_item.answer[0] = { "valueCoding": { "code": val } };
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "attachment") {
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({ "valueAttachment": val })
+                    else
+                        this.context.qr_item.answer[0] = { "valueAttachment": val };
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "reference") {
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({ "valueReference": val })
+                    else
+                        this.context.qr_item.answer[0] = { "valueReference": val };
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "quantity") {
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({ "valueQuantity": val })
+                    else
+                        this.context.qr_item.answer[0] = { "valueQuantity": val };
                     if (val.length == 0)
                         delete this.context.qr_item.answer;
                 }
@@ -201,7 +354,7 @@ Vue.component('fhirq-item', {
         }
     },
     methods: {
-        hasMarkdown: function() {
+        hasMarkdown: function () {
             var markdownExtension = getFirstExtensionByUrl(text_element, "http://hl7.org/fhir/StructureDefinition/rendering-markdown");
             return (markdownExtension && markdownExtension.valueMarkdown);
         },
@@ -252,15 +405,15 @@ function getExtensionsByUrl(extendable, url) {
     return result;
 }
 
-function generateModelItems(item_model, qis, qris){
-    if (qis.length > 0){
-        for (var n=0; n < qis.length; n++){
+function generateModelItems(item_model, qis, qris) {
+    if (qis.length > 0) {
+        for (var n = 0; n < qis.length; n++) {
             var itemQ = qis[n];
             var matched = false;
-            if (qris.length > 0){
-                for (var nqr=0; nqr < qris.length; nqr++){
+            if (qris.length > 0) {
+                for (var nqr = 0; nqr < qris.length; nqr++) {
                     var itemQR = qris[nqr];
-                    if (itemQR.linkId === itemQ.linkId){
+                    if (itemQR.linkId === itemQ.linkId) {
                         matched = true;
                         var t = {
                             q_item: itemQ,
@@ -269,8 +422,7 @@ function generateModelItems(item_model, qis, qris){
                             item_model: []
                         };
                         item_model.push(t);
-                        if (itemQ.item && itemQ.item.length > 0)
-                        {
+                        if (itemQ.item && itemQ.item.length > 0) {
                             if (!itemQR.item)
                                 itemQR.item = [];
                             generateModelItems(t.item_model, itemQ.item, itemQR.item);
@@ -278,7 +430,7 @@ function generateModelItems(item_model, qis, qris){
                     }
                 }
             }
-            if (!matched){
+            if (!matched) {
                 // We need to add a new one anyway to the QR
                 var itemQR = { linkId: itemQ.linkId, text: itemQ.text };
                 qris.push(itemQR);
@@ -289,8 +441,7 @@ function generateModelItems(item_model, qis, qris){
                     item_model: []
                 };
                 item_model.push(t);
-                if (itemQ.item && itemQ.item.length > 0)
-                {
+                if (itemQ.item && itemQ.item.length > 0) {
                     if (!itemQR.item)
                         itemQR.item = [];
                     generateModelItems(t.item_model, itemQ.item, itemQR.item);
@@ -300,7 +451,7 @@ function generateModelItems(item_model, qis, qris){
     }
 }
 
-function generateModel(q, qr){
+function generateModel(q, qr) {
     var result = {
         questionnaire: q,
         questionnaireresponse: qr,
@@ -314,7 +465,7 @@ function generateModel(q, qr){
     return result;
 }
 
-function displayErrorAndWarningMessages(model, outcome){
+function displayErrorAndWarningMessages(model, outcome) {
     // drill through the model to find the instance, and attach the error message
 
 }
