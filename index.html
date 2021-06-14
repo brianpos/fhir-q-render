@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -40,85 +40,30 @@
 </head>
 
 <body>
-
+    URL:
+    <input id="url" value="https://sqlonfhir-r4.azurewebsites.net/fhir/Questionnaire/enable-when-tests"/>
+    <button onclick="RenderQuestionnaire();">Render</button>
     <div id="app">
         <table>
             <tr>
-                <td>
+                <td style="vertical-align: text-top; padding: 8px; width: 50%;">
                     <fhirq-item v-for="(item, index) in questionnaire.item" v-bind:item_defn="item"
                         v-bind:path="'questionnaire.item[' + index + ']'"
                         v-bind:context.sync="model.item_model[index]" v-bind:key="item.linkId">
                     </fhirq-item>
                 </td>
-                <td style="vertical-align: text-top;">
+                <td style="vertical-align: text-top; padding: 8px; width: 50%;">
                     <button v-on:click="refreshQR">Refresh</button>
                     <pre style="height: 100%; min-width: 10px;" id="test">{{ QuestionnaireResponse }}</pre>
                 </td>
             </tr>
         </table>
     </div>
-    <div style="background-color:#fff; padding: 10px; min-height:1000px">
-        <h3>FHIR path evaluation</h3>
-        <div class="row">
-            <div class="col-lg-6">
-                <h4>Insert the FHIR resource below</h4>
-                <br /><br />
-                <div id="divPasteJson">
-                    <textarea id="fhirResource" style="min-width:500px;height:700px;"></textarea>
-                    <br /><br />
-                    <h4>Type your Fhirpath expression below</h4>
-                    <input id="path" value="Patient.name.where(use='usual').given.first()"
-                        placeholder="fhirpath expr..." style="min-width:500px;">
-                    <br />
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="fhirq-rendering-options">
-                    <h3>Output</h3>
-                    <br />
-                    <span id="fhirpathOutput"> </span>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script>
-        function loadPatient() {
-            $.ajax({
-                url: 'https://sqlonfhir-r4.azurewebsites.net/fhir/Patient/0ee71d9a69ac4c75a00373200445bea2?_format=json',
-                headers: {
-                    Accept: "application/json+fhir; charset=utf-8"
-                },
-                success: function (data) {
-                    $('#fhirResource').text((typeof data === 'object') ? JSON.stringify(data, null, '\t') : data);
-                    var returnedValue = fhirpath.evaluate(JSON.parse($('#fhirResource').val()), $('#path').val(), null, fhirpath_r4_model);
-                    $('#fhirpathOutput').text(JSON.stringify(returnedValue));
-                },
-                error: function (ex, a, b) {
-                    alert(JSON.stringify(ex));
-                }
-            });
-        }
-
-        $(document).ready(function () {
-            $("#path").keyup(function () {
-                try {
-                    $('#fhirResource').val(JSON.stringify($.app.questionnaireResponse));
-                    var fhirObject = JSON.parse($('#fhirResource').val());
-                    var expression = $('#path').val();
-                    var returnedValue = fhirpath.evaluate(fhirObject, expression, null, fhirpath_r4_model);
-                    $('#fhirpathOutput').text(JSON.stringify(returnedValue));
-                } catch (e) {
-                    console.log(e.message);
-                }
-            });
-
-            loadPatient();
-
-        });
-
+        var app;
         $(function () {
-            var app = new Vue({
+            app = new Vue({
                 el: '#app',
                 data: {
                     message: 'Hello Vue2!',
@@ -156,10 +101,25 @@
                     }
                 }
             });
+
+            // If there is a URL on the parameters, grab that and replace the control
+            // https://www.w3docs.com/snippets/javascript/how-to-get-url-parameters.html
+            const queryString = window.location.search;
+            console.log(queryString);
+            const urlParams = new URLSearchParams(queryString);
+            const url = urlParams.get("url");
+            if (url){
+                $("#url").val(url);
+            }
+
+            RenderQuestionnaire();
+        });
+
+        function RenderQuestionnaire(){
             $.ajax({
                 //"https://build.fhir.org/ig/HL7/sdc/Questionnaire-questionnaire-sdc-profile-example-render.json"
                 // https://localhost/ncsr-ig/Questionnaire-bow-1000182-1.json
-                url: "https://sqlonfhir-r4.azurewebsites.net/fhir/Questionnaire/enable-when-tests",
+                url: $("#url").val(),
                 async: true,   // asynchronous request? (synchronous requests are discouraged...)
                 cache: false,   // with this, you can force the browser to not make cache of the retrieved data
                 dataType: "json",  // jQuery will infer this, but you can set explicitly
@@ -174,8 +134,7 @@
                 }
             });
 
-        });
-
+        }
         function evalExpr(contextObject, expression, contextVariables) {
             var result = fhirpath.evaluate(contextObject, expression, contextVariables, fhirpath_r4_model);
             return result;
