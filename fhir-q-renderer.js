@@ -11,7 +11,7 @@ Vue.component('fhirq-item', {
     // The todo-item component now accepts a
     // "prop", which is like a custom attribute.
     // This prop is called todo.
-    props: ['item_defn', 'path', 'context', 'value'],
+    props: ['item_defn', 'path', 'context'],
 
     template: `
         <div class="row mb-3">
@@ -28,21 +28,21 @@ Vue.component('fhirq-item', {
                     <label class="form-check-label col-sm-4 col-form-label" v-bind:for="item_defn.linkId">
                     {{ item_defn.text }}
                     </label>
-                    <input class="form-check-input col-sm-8" type="checkbox" v-model="value" value="" v-bind:id="item_defn.linkId">
+                    <input class="form-check-input col-sm-8" type="checkbox" v-model.sync="value" value="" v-bind:id="item_defn.linkId">
                 </template>
                 <template v-else-if="itemControl() === 'drop-down'">
                     <label class="form-check-label col-sm-4 col-form-label" v-bind:for="item_defn.linkId">
                         {{item_defn.text}}
                     </label>
-                    <select v-if="!item_defn.repeats" class="form-select col-sm-8" aria-label="Default select example" v-bind:id="item_defn.linkId">
+                    <select v-if="!item_defn.repeats" class="form-select col-sm-8" v-model.sync="value" aria-label="Default select example" v-bind:id="item_defn.linkId">
                         <option ></option>
-                        <option  v-for="option in answerOptions" v-bind:value="option.code">{{ option.display }}</option>
+                        <option v-for="option in answerOptions" v-bind:value="option.code">{{ option.display }}</option>
                     </select>
                     <div v-else class="col-sm-8">
                         <div v-for="(option,index) in answerOptions">
-                            <input class="form-check-input" type="checkbox" value="" v-bind:id="item_defn.linkId+'_'+index">
+                            <input class="form-check-input" type="checkbox" v-bind:value="option.code" v-model.sync="value" v-bind:id="item_defn.linkId+'_'+index">
                             <label class="form-check-label" v-bind:for="item_defn.linkId+'_'+index">
-                            {{ option.display }}
+                            {{ option.display }}{{ option.valueString }}
                             </label>
                         </div>
                     </div>
@@ -71,17 +71,31 @@ Vue.component('fhirq-item', {
                     <input class="form-control" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText">
                 </div>
             </template>
+            <template v-else-if="item_defn.type === 'dateTime'" >
+                <label for="exampleFormControlInput1" class="col-sm-4 col-form-label">{{ item_defn.text }}</label>
+                <div class="col-sm-4 input-group" >
+                    <input class="form-control" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText">
+                </div>
+            </template>
             <div v-else-if="item_defn.type === 'string'" >
                 <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
-                <input class="form-control" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText">
+                <input class="form-control" v-bind:id="item_defn.linkId" v-model.sync="value" v-bind:placeholder="placeholderText">
             </div>
             <div v-else-if="item_defn.type === 'text'" >
                 <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
-                <textarea class="form-control" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText"></textarea>
+                <textarea class="form-control" :autoResize="true" v-bind:id="item_defn.linkId" v-model="value" v-bind:placeholder="placeholderText"></textarea>
             </div>
             <div v-else-if="item_defn.type === 'decimal'" >
                 <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
-                <input class="form-control" v-model="value" v-bind:id="item_defn.linkId">
+                <input class="form-control" style="width:150px; v-model="value" v-bind:id="item_defn.linkId">
+            </div>
+            <div v-else-if="item_defn.type === 'integer'" >
+                <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
+                <input class="form-control" style="width:150px;" v-model="value" v-bind:id="item_defn.linkId">
+            </div>
+            <div v-else-if="item_defn.type === 'quantity'" >
+                <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
+                <input class="form-control" style="width:150px;" v-model="value" v-bind:id="item_defn.linkId">
             </div>
             <div v-else-if="item_defn.type === 'boolean'">
                 <input class="form-check-input" type="checkbox" v-model="value" value="" v-bind:id="path">
@@ -120,6 +134,70 @@ Vue.component('fhirq-item', {
                 });
             }
             return result;
+        },
+        value:{
+            get: function(){
+                if (!this.context.qr_item.answer || this.context.qr_item.answer.length === 0)
+                    return '';
+                if (this.item_defn.type === "string" || this.item_defn.type === "text"){
+                    if (this.context.qr_item.answer[0].valueString)
+                        return this.context.qr_item.answer[0].valueString;
+                    return '';
+                }
+                if (this.item_defn.type === "boolean"){
+                    if (this.context.qr_item.answer[0].valueBoolean)
+                        return this.context.qr_item.answer[0].valueBoolean;
+                    return false;
+                }
+                if (this.item_defn.type === "coding"){
+                    if (this.context.qr_item.answer[0].valueCoding)
+                        return this.context.qr_item.answer[0].valueCoding.code;
+                    return false;
+                }
+                return '';
+            },
+            set: function(val){
+                if (this.item_defn.type === "string" || this.item_defn.type === "text"){
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({"valueString":val})
+                    else
+                        this.context.qr_item.answer[0] = {"valueString":val};
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "boolean"){
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({"valueBoolean":val})
+                    else
+                        this.context.qr_item.answer[0] = {"valueBoolean":val};
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "date"){
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({"valueDate":val})
+                    else
+                        this.context.qr_item.answer[0] = {"valueDate":val};
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+                if (this.item_defn.type === "coding"){
+                    if (!this.context.qr_item.answer)
+                        this.context.qr_item.answer = [];
+                    if (this.context.qr_item.answer.length < 1)
+                        this.context.qr_item.answer.push({"valueCoding":{"code": val}})
+                    else
+                        this.context.qr_item.answer[0] = {"valueCoding":{"code": val}};
+                    if (val.length == 0)
+                        delete this.context.qr_item.answer;
+                }
+            }
         }
     },
     methods: {
@@ -129,30 +207,6 @@ Vue.component('fhirq-item', {
         },
         itemControl: function () {
             return itemControl(this.item_defn);
-        }
-    },
-    watch: {
-        value: function(val){
-            if (this.item_defn.type === "string"){
-                if (!this.context.qr_item.answer)
-                    this.context.qr_item.answer = [];
-                if (this.context.qr_item.answer.length < 1)
-                    this.context.qr_item.answer.push({"valueString":val})
-                else
-                    this.context.qr_item.answer[0] = {"valueString":val};
-                if (val.length == 0)
-                    delete this.context.qr_item.answer;
-            }
-            if (this.item_defn.type === "boolean"){
-                if (!this.context.qr_item.answer)
-                    this.context.qr_item.answer = [];
-                if (this.context.qr_item.answer.length < 1)
-                    this.context.qr_item.answer.push({"valueBoolean":val})
-                else
-                    this.context.qr_item.answer[0] = {"valueBoolean":val};
-                if (val.length == 0)
-                    delete this.context.qr_item.answer;
-            }
         }
     }
 });
