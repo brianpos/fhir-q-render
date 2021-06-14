@@ -40,9 +40,11 @@
 </head>
 
 <body>
-    URL:
-    <input id="url" value="https://sqlonfhir-r4.azurewebsites.net/fhir/Questionnaire/enable-when-tests"/>
-    <button onclick="RenderQuestionnaire();">Render</button>
+    <div class="input-group input-group-s">
+        <span class="input-group-text" id="inputGroup-sizing-sm">URL:</span>
+        <input id="url" class="form-control" value="https://sqlonfhir-r4.azurewebsites.net/fhir/Questionnaire/enable-when-tests"/>
+        <button clas="btn btn-outline-secondary" type="button" onclick="RenderQuestionnaire();">Render</button>
+    </div>
     <div id="app">
         <table>
             <tr>
