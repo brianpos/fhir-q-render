@@ -118,7 +118,7 @@ Vue.component('fhirq-item', {
             </div>
             <div v-else-if="item_defn.type === 'attachment'" >
                 <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
-                <input class="form-control" style="width:150px;" v-model="value" v-bind:id="item_defn.linkId">
+                <input class="form-control" type="file" v-on:change="selectAttachment" v-bind:id="item_defn.linkId">
             </div>
             <div v-else-if="item_defn.type === 'reference'" >
                 <label for="exampleFormControlInput1" class="form-label">{{ item_defn.text }}</label>
@@ -339,9 +339,9 @@ Vue.component('fhirq-item', {
                         this.context.qr_item.answer = [];
                     var system = val;
                     var code = val;
-                    if (val.indexOf("#") > -1){
-                        system = val.substring(0,val.indexOf("#"));
-                        code = val.substring(val.indexOf("#")+1);
+                    if (val.indexOf("#") > -1) {
+                        system = val.substring(0, val.indexOf("#"));
+                        code = val.substring(val.indexOf("#") + 1);
                     }
                     if (this.context.qr_item.answer.length < 1)
                         this.context.qr_item.answer.push({ "valueCoding": { "system": system, "code": code } })
@@ -400,6 +400,36 @@ Vue.component('fhirq-item', {
         },
         itemControl: function () {
             return itemControl(this.item_defn);
+        },
+        selectAttachment: function (att) {
+            if (att.target && att.target.files && att.target.files.length == 1) {
+                var file = att.target.files[0];
+                const reader = new FileReader();
+                var $valAttachment = {
+                    "size": file.size,
+                    "title": file.name,
+                    "creation": file.lastModifiedDate
+                };
+                if (file.type && file.type.length > 0) {
+                    $valAttachment.contentType = file.type;
+                }
+                if (!this.context.qr_item.answer)
+                    this.context.qr_item.answer = [];
+                if (this.context.qr_item.answer.length < 1)
+                    this.context.qr_item.answer.push({ "valueAttachment": $valAttachment })
+                else
+                    this.context.qr_item.answer[0] = { "valueQuantity": $valAttachment };
+                reader.onload = function (fileLoadedEvent) {
+                    // Also need to trim out the prefix content from the reader
+                    // "data": "data:application/octet-stream;base64,WzEwMTY...
+                    var prefixContent = fileLoadedEvent.target.result.substring(0, fileLoadedEvent.target.result.indexOf(";base64,"));
+                    $valAttachment.contentType = prefixContent.substring(5);
+                    $valAttachment.data = fileLoadedEvent.target.result.substring(fileLoadedEvent.target.result.indexOf(";base64,")+8);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                delete this.context.qr_item.answer;
+            }
         }
     }
 });
